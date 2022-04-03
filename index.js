@@ -4,6 +4,7 @@ const parse = require('csv-parse').parse;
 const os = require('os');
 const multer = require('multer');
 const fs = require('fs');
+const Port = 8000;
 
 const association = require("./services/fpgrowth");
 const getRecomendation = require("./services/saw");
@@ -92,4 +93,4 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
     })
 })
 
-app.listen(8000, () => console.log('Listening on port 8000'));
+app.listen(process.env.PORT || Port, () => console.log('Listening on port 8000'));
