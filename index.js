@@ -41,7 +41,8 @@ app.post('/api/main', upload.single('file'), async (req, res) => {
         status: "OK",
         data: {
             bestProduct,
-            result
+            result,
+            itemset
         }
     })
 })
@@ -88,7 +89,8 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
         status: "OK",
         data: {
             bestProduct,
-            result
+            result,
+            itemset
         }
     })
 })
