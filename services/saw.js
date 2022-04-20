@@ -28,8 +28,8 @@ function normalize(matrix, maxmin) {
   return matrix;
 }
 
-function countRank(nilai) {
-  const total = (nilai.stock * criteria.stock) + (nilai.exp * criteria.exp) + (nilai.profit * criteria.profit); 
+function countRank(nilai, stockPercentage, expPercentage, profitPercentage) {
+  const total = (nilai.stock * stockPercentage) + (nilai.exp * expPercentage) + (nilai.profit * profitPercentage); 
   const result = {
     name: nilai.name,
     id: nilai.id,
@@ -38,11 +38,11 @@ function countRank(nilai) {
   return result;
 }
 
-const getRecomendation = async (data) => {
+const getRecomendation = async (data, stockPercentage, expPercentage, profitPercentage) => {
   console.log(`Executing SAW...`);
     const rangeValue = getMinMax(data);
     const normalizeValue = _.map(data, nilai => normalize(nilai, rangeValue));
-    const weightRank = _.map(normalizeValue, nilai => countRank(nilai));
+    const weightRank = _.map(normalizeValue, nilai => countRank(nilai, stockPercentage, expPercentage, profitPercentage));
     const result = weightRank.sort((a, b) => {
         return a.total - b.total
     });

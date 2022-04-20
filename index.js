@@ -23,9 +23,16 @@ app.post('/api/main', upload.single('file'), async (req, res) => {
 
 
     const file = req.file;
-    const {dataProducts, minSupport} = req.body
+    const {dataProducts, minSupport, productAmount, stockPercentage, expPercentage, profitPercentage} = req.body
     const parseData = JSON.parse(dataProducts);
+
+    
+    const parseProductAmount = JSON.parse(productAmount);
+    const parseStockPercentage = JSON.parse(stockPercentage);
+    const parseExpPercentage = JSON.parse(expPercentage);
+    const parseProfitPercentage = JSON.parse(profitPercentage);
     const parseMinSupport = JSON.parse(minSupport);
+
     const transactions = fs.readFileSync(file.path)
         .toString()
         .split('\n')
@@ -33,9 +40,9 @@ app.post('/api/main', upload.single('file'), async (req, res) => {
         .map(e => e.split(',').map(e => e.trim()));
 
     const itemset = await association(transactions, parseMinSupport);
-    const products = await getRecomendation(parseData);
+    const products = await getRecomendation(parseData, parseStockPercentage/100, parseExpPercentage/100, parseProfitPercentage/100);
     // slice product to get the 3 best
-    const bestProduct = products.slice(0, 3);
+    const bestProduct = products.slice(0, parseProductAmount);
     const result = await combineRecomendation(itemset, bestProduct);
     res.status(201).json({
         status: "OK",
@@ -52,8 +59,14 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
     const dataProducts = req.files.product;
     const transaction = req.files.transaction;
 
-    const {minSupport} = req.body
+    const {minSupport, productAmount, stockPercentage, expPercentage, profitPercentage} = req.body;
+
+    const parseProductAmount = JSON.parse(productAmount);
+    const parseStockPercentage = JSON.parse(stockPercentage);
+    const parseExpPercentage = JSON.parse(expPercentage);
+    const parseProfitPercentage = JSON.parse(profitPercentage);
     const parseMinSupport = JSON.parse(minSupport);
+
     const parseProduct = fs.readFileSync(dataProducts[0].path).toString().split('\n').map(e => e.trim());
 
     // convrt to array of object
@@ -72,9 +85,9 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
     resProduct.push(obj);
 }
 
-    const products = await getRecomendation(resProduct);
+    const products = await getRecomendation(resProduct, parseStockPercentage/100, parseExpPercentage/100, parseProfitPercentage/100);
     // slice product to get the 3 best
-    const bestProduct = products.slice(0, 3);
+    const bestProduct = products.slice(0, parseProductAmount);
 
     const transactionsData = fs.readFileSync(transaction[0].path)
         .toString()
