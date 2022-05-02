@@ -84,7 +84,6 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
     }
     resProduct.push(obj);
 }
-
     const products = await getRecomendation(resProduct, parseStockPercentage/100, parseExpPercentage/100, parseProfitPercentage/100);
     // slice product to get the 3 best
     const bestProduct = products.slice(0, parseProductAmount);
@@ -96,6 +95,9 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
         .map(e => e.split(',').map(e => e.trim()));
 
     const itemset = await association(transactionsData, parseMinSupport);
+    const sortedItemset = itemset.sort((a, b) => {
+        return b.confidence - a.confidence
+    })
 
     const result = await combineRecomendation(itemset, bestProduct);
     res.status(201).json({
@@ -103,7 +105,7 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
         data: {
             bestProduct,
             result,
-            itemset
+            itemset: sortedItemset
         }
     })
 })
