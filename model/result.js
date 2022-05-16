@@ -4,9 +4,11 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
 const ResultSchema = new Schema({
-  result_id: ObjectId,
+  _id: ObjectId,
   user_id: String,
   result: Array,
+  best_products: Array,
+  itemset: Array,
   date: Date
 });
 

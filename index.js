@@ -6,12 +6,14 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const User = require('./model/user');
 const Result = require('./model/result');
+const Province = require('./model/province');
+const Cities = require('./model/cities');
+const Company = require('./model/company');
 const Port = 8000;
 
 const association = require("./services/fpgrowth");
 const getRecomendation = require("./services/saw");
 const combineRecomendation = require("./services/combineRecomendation");
-const { where } = require("./model/user");
 
 const app = express();
 const upload = multer({dest: os.tmpdir()})
@@ -116,26 +118,40 @@ app.post('/api/csv', upload.fields([{name : 'product', maxCount: 1}, {name: 'tra
 })
 
 app.post('/register', async (req, res) => {
-    const {username, password, company} = req.body;
-    const newUser = new User({
-        user_id: mongoose.Types.ObjectId(),
-        username: username,
-        password: password,
-        company: company,
-        date: new Date()
+    const {username, password, company_name, company_email, province_id, city_id, company_address} = req.body;
+
+    const newCompany = new Company({
+        _id: mongoose.Types.ObjectId(),
+        company_name,
+        company_email,
+        company_address,
+        province_id,
+        city_id
+    });
+
+    newCompany.save().then(cmpResult => {
+
+        const newUser = new User({
+            _id: mongoose.Types.ObjectId(),
+            username: username,
+            password: password,
+            company_id: cmpResult._id,
+            date: new Date()
+        })
+    
+        newUser.save().then(result => {
+            res.status(201).json({
+                status: "OK",
+                data: result
+            })
+        }).catch(err => {
+            res.status(500).json({
+                status: "OK",
+                data: err
+            })
+        })
     })
 
-    newUser.save().then(result => {
-        res.status(201).json({
-            status: "OK",
-            data: result
-        })
-    }).catch(err => {
-        res.status(500).json({
-            status: "OK",
-            data: err
-        })
-    })
 
 });
 
@@ -171,12 +187,14 @@ app.post('/login', async (req, res) => {
 })
 
 app.post('/save', async (req, res) => {
-    const {user_id, result} = req.body;
+    const {user_id, result, itemset, best_products} = req.body;
 
     const newResult = new Result({
-        result_id: mongoose.Types.ObjectId(),
+        _id: mongoose.Types.ObjectId(),
         user_id: user_id,
         result: result,
+        itemset: itemset,
+        best_products: best_products,
         date: new Date()
     })
 
@@ -193,12 +211,16 @@ app.post('/save', async (req, res) => {
     })
 })
 
-app.get('/history/:user_id', async (req, res) => {
+app.get('/history/:user_id/:company_id', async (req, res) => {
 
-    const {user_id} = req.params;
+    const {user_id, company_id} = req.params;
 
     const result = await Result.find({
         user_id
+    })
+
+    const comp = await Company.findOne({
+        _id: company_id
     })
 
     if (!result) {
@@ -209,10 +231,31 @@ app.get('/history/:user_id', async (req, res) => {
     } else {
         res.status(200).json({
             status: "OK",
-            data: result
+            data: {
+                result,
+                comp
+            }
         })
     }
 
+});
+
+app.get('/province', async (req, res) => {
+    const prov = await Province.find();
+
+    res.status(200).json({
+        status: "OK",
+        data: prov,
+    })
+});
+
+app.get('/cities', async (req, res) => {
+    const cities = await Cities.find();
+
+    res.status(200).json({
+        status: "OK",
+        data: cities,
+    })
 })
 
 app.listen(process.env.PORT || Port, () => console.log('Listening on port 8000'));

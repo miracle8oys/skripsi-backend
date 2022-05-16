@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
 const UserSchema = new Schema({
-  user_id: ObjectId,
+  _id: ObjectId,
   username: String,
   password: String,
-  company: String,
+  company_id: String,
   date: Date
 });
 
